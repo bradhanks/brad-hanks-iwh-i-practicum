@@ -1,29 +1,64 @@
+import 'dotenv/config';
 import express, { Request, Response } from 'express';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import type { HubSpotResponse } from './types/index.js';
 
-// Get __dirname equivalent for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
+// Resolve paths relative to project root (works in both dev and production)
+const projectRoot = process.cwd();
 const app = express();
-
+const PORT = process.env.PORT || 3000;
 app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, '../views'));
+app.set('views', path.join(projectRoot, 'views'));
 app.locals.isProduction = process.env.NODE_ENV === 'production';
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(projectRoot, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // * Please DO NOT INCLUDE the private app access token in your repo. Don't do this practicum in your normal account.
-const PRIVATE_APP_ACCESS: string = process.env.ACCESS_TOKEN || '';
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+const CUSTOM_OBJECT_TYPE = process.env.CUSTOM_OBJECT_TYPE;
 
+if (!ACCESS_TOKEN || !CUSTOM_OBJECT_TYPE) {
+    console.error('ERROR: Missing required environment variables (ACCESS_TOKEN or CUSTOM_OBJECT_TYPE)');
+    process.exit(1);
+}
+
+const headers = {
+    Authorization: `Bearer ${ACCESS_TOKEN}`,
+    'Content-Type': 'application/json'
+};
 // TODO: ROUTE 1 - Create a new app.get route for the homepage to call your custom object data. Pass this data along to the front-end and create a new pug template in the views folder.
 
-// * Code for Route 1 goes here
+app.get('/', async (_req: Request, res: Response): Promise<void> => {
+    const url = `https://api.hubapi.com/crm/v3/objects/${CUSTOM_OBJECT_TYPE}?properties=name,homeownership_rate,median_home_age&limit=100`;
 
+    try {
+        const response = await axios.get<HubSpotResponse>(url, { headers });
+        const records = response.data.results || [];
+
+        // Sort by zip code alphabetically
+        records.sort((a: { properties: { name?: string } }, b: { properties: { name?: string } }) => {
+            const nameA = a.properties.name || '';
+            const nameB = b.properties.name || '';
+            return nameA.localeCompare(nameB);
+        });
+
+
+        res.render('home', {
+            title: 'Ground Truth | Housing Data',
+            records: records
+        });
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        console.error('Error fetching records:', axiosError.response?.data || axiosError.message);
+        res.render('home', {
+            title: 'Ground Truth | Housing Data',
+            records: [],
+            error: 'Failed to load data. Check your ACCESS_TOKEN and CUSTOM_OBJECT_TYPE.'
+        });
+    }
+});
 // TODO: ROUTE 2 - Create a new app.get route for the form to create or update new custom object data. Send this data along in the next route.
 
 // * Code for Route 2 goes here
@@ -77,8 +112,16 @@ app.post('/update', async (req, res) => {
 */
 
 
-// * Localhost
-const PORT = process.env.PORT || 3000;
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Listening on http://localhost:${PORT}`);
+    console.log(`
+┌─────────────────────────────────────────┐
+│                                         │
+│   GROUND TRUTH                          │
+│   Housing data tracker                  │
+│                                         │
+│   → http://localhost:${PORT}            │
+│                                         │
+└─────────────────────────────────────────┘
+    `);
 });

@@ -1,0 +1,94 @@
+//- Homepage - shows all zip code records in a table
+extends layout
+
+block content
+  header.border-b.border-neutral-800.py-6(class="dark:border-neutral-200")
+    .max-w-5xl.mx-auto.px-6.flex.justify-between.items-center
+      div
+        h1.font-display.text-2xl.font-bold.tracking-tight GROUND TRUTH
+        p.text-sm.mt-1.text-neutral-400(class="dark:text-neutral-500") Housing ownership by zip code
+
+      //- Theme toggle
+      button.transition-colors.text-sm.uppercase.tracking-wider.text-neutral-400.bg-transparent.border-none.cursor-pointer(class="hover:text-neutral-50 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" onclick="toggleTheme()" id="theme-toggle" aria-label="Toggle theme" type="button")
+        span#theme-icon(aria-hidden="true") ◐
+        |  Theme
+  
+  main#main-content.max-w-5xl.mx-auto.px-6.py-12
+    
+    if error
+      .bg-red-500.bg-opacity-10.border.border-red-500.p-4.mb-8.rounded-sm(role="alert" aria-live="assertive")
+        p.text-red-400.text-sm= error
+    
+    //- Top bar
+    .flex.justify-between.items-center.mb-8
+      p.text-sm.uppercase.tracking-wider.text-neutral-400
+        span.font-medium.tabular-nums.text-neutral-50= records.length
+        |  records
+
+      a.inline-flex.items-center.gap-2.px-4.py-2.text-sm.font-medium.transition-colors.bg-neutral-50.text-neutral-950.rounded-sm(class="hover:bg-neutral-200 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/update-cobj" aria-label="Add new zip code")
+        span(aria-hidden="true") +
+        span Add zip code
+    
+    //- Data table
+    if records.length > 0
+      .border.border-neutral-800.overflow-hidden.rounded-sm
+        table.w-full(role="table" aria-label="Housing ownership data by zip code")
+          thead
+            tr.bg-neutral-900
+              th.text-left.px-6.py-4.text-xs.uppercase.tracking-wider.font-medium.border-b.border-neutral-800.text-neutral-400(scope="col") Zip Code
+              
+              //- Ownership Rate
+              th.text-right.px-6.py-4.text-xs.uppercase.tracking-wider.font-medium.border-b.border-neutral-800.text-neutral-400(
+                scope="col"
+                class=records.length > 1 ? 'cursor-pointer select-none hover:[&_.sort-chevron_path]:opacity-60' : ''
+                data-sort="rate"
+                onclick=records.length > 1 ? 'sortTable("rate")' : ''
+              )
+                span Ownership Rate
+                if records.length > 1
+                  svg.sort-chevron.inline-block.w-3.h-3.ml-1.align-middle#sort-icon-rate(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                    path.sort-up(d="M3 4.5L6 1.5L9 4.5")
+                    path.sort-down(d="M3 7.5L6 10.5L9 7.5")
+              
+              //- Median Home Age
+              th.text-right.px-6.py-4.text-xs.uppercase.tracking-wider.font-medium.border-b.border-neutral-800.text-neutral-400(
+                scope="col"
+                class=records.length > 1 ? 'cursor-pointer select-none hover:[&_.sort-chevron_path]:opacity-60' : ''
+                data-sort="value"
+                onclick=records.length > 1 ? 'sortTable("value")' : ''
+              )
+                span Median Home Age
+                if records.length > 1
+                  svg.sort-chevron.inline-block.w-3.h-3.ml-1.align-middle#sort-icon-value(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
+                    path.sort-up(d="M3 4.5L6 1.5L9 4.5")
+                    path.sort-down(d="M3 7.5L6 10.5L9 7.5")
+          
+          tbody#table-body
+            each record, index in records
+              - const rate = parseFloat(record.properties.homeownership_rate) || 0
+              - const value = parseInt(record.properties.median_home_age) || 0
+              - const rateColor = rate >= 65 ? 'text-green-400' : rate >= 50 ? 'text-yellow-400' : 'text-red-400'
+              
+              tr.border-b.border-neutral-800.transition-colors(class="hover:bg-neutral-900"
+                data-zip=record.properties.name || ''
+                data-rate=rate
+                data-value=value
+              )
+                th.px-6.py-4.font-medium.tabular-nums.text-left(scope="row")= record.properties.name || '—'
+                td.px-6.py-4.text-right.tabular-nums(class=rateColor aria-label=`Ownership rate: ${rate ? rate.toFixed(1) + '%' : 'not available'}`)
+                  if rate
+                    | #{rate.toFixed(1)}%
+                  else
+                    span.text-neutral-600(aria-hidden="true") —
+                td.px-6.py-4.text-right.tabular-nums(aria-label=`Median home age: ${value ? value + ' years' : 'not available'}`)
+                  if value
+                    | #{value} years
+                  else
+                    span.text-neutral-600(aria-hidden="true") —
+    else
+      //- Empty state
+      .border.border-dashed.border-neutral-800.py-16.text-center.rounded-sm
+        p.mb-4.text-neutral-400 No zip codes tracked yet.
+        a.underline.underline-offset-4.text-neutral-50(class="hover:no-underline focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/update-cobj") Add your first one →
+
+  script(src="/js/sorting.js")
