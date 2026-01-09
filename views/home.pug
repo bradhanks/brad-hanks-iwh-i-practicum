@@ -25,9 +25,12 @@ block content
         span.font-medium.tabular-nums.text-neutral-50= records.length
         |  records
 
-      a.inline-flex.items-center.gap-2.px-4.py-2.text-sm.font-medium.transition-colors.bg-neutral-50.text-neutral-950.rounded-sm(class="hover:bg-neutral-200 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/update-cobj" aria-label="Add new zip code")
-        span(aria-hidden="true") +
-        span Add zip code
+      .flex.gap-3
+        a.inline-flex.items-center.gap-2.px-4.py-2.text-sm.font-medium.transition-colors.border.border-neutral-800.text-neutral-400.rounded-sm(class="hover:border-neutral-600 hover:text-neutral-50 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/contacts" role="button" aria-label="View contacts")
+          span Contacts
+        a.inline-flex.items-center.gap-2.px-4.py-2.text-sm.font-medium.transition-colors.bg-neutral-50.text-neutral-950.rounded-sm(class="hover:bg-neutral-200 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/update-cobj" role="button" aria-label="Add new zip code")
+          span(aria-hidden="true") +
+          span Add zip code
     
     //- Data table
     if records.length > 0
@@ -62,6 +65,9 @@ block content
                   svg.sort-chevron.inline-block.w-3.h-3.ml-1.align-middle#sort-icon-value(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true")
                     path.sort-up(d="M3 4.5L6 1.5L9 4.5")
                     path.sort-down(d="M3 7.5L6 10.5L9 7.5")
+
+              //- Contact
+              th.text-right.px-6.py-4.text-xs.uppercase.tracking-wider.font-medium.border-b.border-neutral-800.text-neutral-400(scope="col") Contact
           
           tbody#table-body
             each record, index in records
@@ -87,8 +93,8 @@ block content
                     span.text-neutral-600(aria-hidden="true") —
     else
       //- Empty state
-      .border.border-dashed.border-neutral-800.py-16.text-center.rounded-sm
+      .border.border-dashed.border-neutral-800.py-16.text-center.rounded-sm(role="status" aria-live="polite")
         p.mb-4.text-neutral-400 No zip codes tracked yet.
-        a.underline.underline-offset-4.text-neutral-50(class="hover:no-underline focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/update-cobj") Add your first one →
+        a.underline.underline-offset-4.text-neutral-50(class="hover:no-underline focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/update-cobj" role="button") Add your first one →
 
   script(src="/js/sorting.js")
