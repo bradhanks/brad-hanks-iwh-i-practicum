@@ -1,0 +1,95 @@
+//- Form page for adding a new zip code record
+extends layout
+
+block content
+  header.border-b.border-neutral-800.py-6(class="dark:border-neutral-200")
+    .max-w-5xl.mx-auto.px-6.flex.justify-between.items-center
+      div
+        h1.font-display.text-2xl.font-bold.tracking-tight
+          a.transition-opacity(class="hover:opacity-80" href="/") GROUND TRUTH
+        p.text-sm.mt-1.text-neutral-400 Housing ownership by zip code
+
+      //- Theme toggle
+      button.transition-colors.text-sm.uppercase.tracking-wider.text-neutral-400.bg-transparent.border-none.cursor-pointer(class="hover:text-neutral-50 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" onclick="toggleTheme()" id="theme-toggle" aria-label="Toggle theme" type="button")
+        span#theme-icon(aria-hidden="true") ◐
+        |  Theme
+  
+  main#main-content.max-w-5xl.mx-auto.px-6.py-12
+    
+    .mb-8
+      a.text-sm.transition-colors.inline-flex.items-center.gap-2.text-neutral-400(class="hover:text-neutral-50 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/")
+        span(aria-hidden="true") ←
+        span Return to the homepage
+
+    //- Page title
+    .mb-12
+      h2.font-display.text-3xl.font-bold.tracking-tight.mb-2 Add Zip Code
+      p.text-neutral-400 Enter housing data for a new zip code.
+    
+    if error
+      .bg-red-500.bg-opacity-10.border.border-red-500.p-4.mb-8.rounded-sm(role="alert" aria-live="assertive")
+        p.text-red-400.text-sm= error
+    
+    form.max-w-md(method="POST" action="/update-cobj")
+
+      //- Zip code input
+      .mb-6
+        label.block.text-xs.uppercase.tracking-wider.mb-2.text-neutral-400(for="name") Zip Code
+        input.w-full.border.border-neutral-800.px-4.py-3.transition-colors.tabular-nums.bg-neutral-900.text-neutral-50.rounded-sm(
+          class="placeholder-neutral-600 focus:outline-none focus:border-neutral-600"
+          type="text"
+          id="name"
+          name="name"
+          placeholder="e.g., 84101"
+          required
+          pattern="[0-9]{5}"
+          maxlength="5"
+          value=(formData && formData.name ? formData.name : '')
+          aria-describedby="name-help"
+        )
+        p#name-help.text-xs.mt-2.text-neutral-600 5-digit US zip code
+      
+      //- Homeownership rate input
+      .mb-6
+        label.block.text-xs.uppercase.tracking-wider.mb-2.text-neutral-400(for="homeownership_rate") Homeownership Rate
+        .relative
+          input.w-full.border.border-neutral-800.px-4.py-3.pr-12.transition-colors.tabular-nums.bg-neutral-900.text-neutral-50.rounded-sm(
+            class="placeholder-neutral-600 focus:outline-none focus:border-neutral-600"
+            type="number"
+            id="homeownership_rate"
+            name="homeownership_rate"
+            placeholder="e.g., 65.4"
+            step="0.1"
+            min="0"
+            max="100"
+            required
+            value=(formData && formData.homeownership_rate ? formData.homeownership_rate : '')
+            aria-describedby="rate-help"
+          )
+          span.absolute.right-4.text-neutral-600(class="top-1/2 -translate-y-1/2" aria-hidden="true") %
+        p#rate-help.text-xs.mt-2.text-neutral-600 Percentage of owner-occupied housing units
+      
+      //- Median home value input
+      .mb-8
+        label.block.text-xs.uppercase.tracking-wider.mb-2.text-neutral-400(for="median_home_age") Median Home Value
+        .relative
+          span.absolute.left-4.text-neutral-600(class="top-1/2 -translate-y-1/2" aria-hidden="true") $
+          input.w-full.border.border-neutral-800.pl-8.pr-4.py-3.transition-colors.tabular-nums.bg-neutral-900.text-neutral-50.rounded-sm(
+            class="placeholder-neutral-600 focus:outline-none focus:border-neutral-600"
+            type="number"
+            id="median_home_age"
+            name="median_home_age"
+            placeholder="e.g., 425000"
+            min="0"
+            required
+            value=(formData && formData.median_home_age ? formData.median_home_age : '')
+            aria-describedby="value-help"
+          )
+        p#value-help.text-xs.mt-2.text-neutral-600 Median value in US dollars
+
+      //- Form buttons
+      .flex.gap-4
+        button.px-6.py-3.font-medium.transition-colors.bg-neutral-50.text-neutral-950.rounded-sm(class="hover:bg-neutral-200 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" type="submit")
+          | Add to database
+        a.px-6.py-3.border.border-neutral-800.transition-colors.text-neutral-400.rounded-sm(class="hover:border-neutral-600 hover:text-neutral-50 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/")
+          | Cancel

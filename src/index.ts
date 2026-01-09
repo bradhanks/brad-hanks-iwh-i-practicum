@@ -63,7 +63,11 @@ app.get('/', async (_req: Request, res: Response): Promise<void> => {
 
 // * Code for Route 2 goes here
 
-// TODO: ROUTE 3 - Create a new app.post route for the custom objects form to create or update your custom object data. Once executed, redirect the user to the homepage.
+app.get('/update-cobj', (req, res) => {
+    res.render('update', {
+        title: 'Add Zip Code | Ground Truth'
+    });
+});
 
 // * Code for Route 3 goes here
 
