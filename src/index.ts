@@ -114,6 +114,123 @@ app.post('/update-cobj', async (req, res) => {
     }
 });
 
+// CONTACTS ROUTES - View contacts and manage zip code associations
+
+app.get('/contacts', async (_req: Request, res: Response): Promise<void> => {
+    const contactsUrl = `https://api.hubapi.com/crm/v3/objects/contacts?properties=firstname,lastname,email,phone&limit=100`;
+
+    try {
+        const response = await axios.get(contactsUrl, { headers });
+        const contacts = response.data.results || [];
+
+        // Fetch associated zip codes for each contact
+        const contactsWithZipCodes = await Promise.all(
+            contacts.map(async (contact: any) => {
+                try {
+                    const associationsUrl = `https://api.hubapi.com/crm/v4/objects/contacts/${contact.id}/associations/${CUSTOM_OBJECT_TYPE}`;
+                    const assocResponse = await axios.get(associationsUrl, { headers });
+
+                    const zipCodeIds = assocResponse.data.results?.map((r: any) => r.toObjectId) || [];
+
+                    // Fetch zip code details if associated
+                    if (zipCodeIds.length > 0) {
+                        const zipCodeUrl = `https://api.hubapi.com/crm/v3/objects/${CUSTOM_OBJECT_TYPE}/${zipCodeIds[0]}?properties=name,homeownership_rate,median_home_age`;
+                        const zipResponse = await axios.get(zipCodeUrl, { headers });
+                        contact.zipCode = zipResponse.data;
+                    }
+                } catch (error) {
+                    // No association exists, that's ok
+                    contact.zipCode = null;
+                }
+                return contact;
+            })
+        );
+
+        // Fetch all available zip codes for the association dropdown
+        const zipCodesUrl = `https://api.hubapi.com/crm/v3/objects/${CUSTOM_OBJECT_TYPE}?properties=name&limit=100`;
+        const zipCodesResponse = await axios.get(zipCodesUrl, { headers });
+        const allZipCodes = zipCodesResponse.data.results || [];
+
+        res.render('contacts', {
+            title: 'Contacts | Ground Truth',
+            contacts: contactsWithZipCodes,
+            zipCodes: allZipCodes
+        });
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        console.error('Error fetching contacts:', axiosError.response?.data || axiosError.message);
+        res.render('contacts', {
+            title: 'Contacts | Ground Truth',
+            contacts: [],
+            zipCodes: [],
+            error: 'Failed to load contacts. Please check your API credentials.'
+        });
+    }
+});
+
+app.post('/contacts/:contactId/associate', async (req: Request, res: Response): Promise<void> => {
+    const { contactId } = req.params;
+    const { zipCodeId } = req.body;
+
+    if (!zipCodeId) {
+        res.redirect('/contacts');
+        return;
+    }
+
+    try {
+        // First, check if there's an existing association and remove it
+        try {
+            const existingAssociationsUrl = `https://api.hubapi.com/crm/v4/objects/contacts/${contactId}/associations/${CUSTOM_OBJECT_TYPE}`;
+            const existingResponse = await axios.get(existingAssociationsUrl, { headers });
+            const existingAssociations = existingResponse.data.results || [];
+
+            // Remove existing associations
+            for (const assoc of existingAssociations) {
+                const deleteUrl = `https://api.hubapi.com/crm/v4/objects/contacts/${contactId}/associations/${CUSTOM_OBJECT_TYPE}/${assoc.toObjectId}`;
+                await axios.delete(deleteUrl, { headers });
+            }
+        } catch (error) {
+            // No existing associations, continue
+        }
+
+        // Create new association
+        const associationUrl = `https://api.hubapi.com/crm/v4/objects/contacts/${contactId}/associations/${CUSTOM_OBJECT_TYPE}/${zipCodeId}`;
+
+        await axios.put(associationUrl, [
+            {
+                associationCategory: "USER_DEFINED",
+                associationTypeId: 1 // Default association type
+            }
+        ], { headers });
+
+        res.redirect('/contacts');
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        console.error('Error creating association:', axiosError.response?.data || axiosError.message);
+        res.redirect('/contacts?error=association_failed');
+    }
+});
+
+app.post('/contacts/:contactId/disassociate', async (req: Request, res: Response): Promise<void> => {
+    const { contactId } = req.params;
+    const { zipCodeId } = req.body;
+
+    if (!zipCodeId) {
+        res.redirect('/contacts');
+        return;
+    }
+
+    try {
+        const deleteUrl = `https://api.hubapi.com/crm/v4/objects/contacts/${contactId}/associations/${CUSTOM_OBJECT_TYPE}/${zipCodeId}`;
+        await axios.delete(deleteUrl, { headers });
+
+        res.redirect('/contacts');
+    } catch (error) {
+        const axiosError = error as AxiosError;
+        console.error('Error removing association:', axiosError.response?.data || axiosError.message);
+        res.redirect('/contacts?error=disassociation_failed');
+    }
+});
 
 // * Code for Route 3 goes here
 
