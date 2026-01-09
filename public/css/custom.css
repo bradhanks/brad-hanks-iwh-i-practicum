@@ -21,6 +21,22 @@
     --focus-ring-color: var(--color-neutral-950);
 }
 
+/* ============================================
+   Remove Number Input Spinners
+   ============================================ */
+/* Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 /* Fix light mode hover states */
 .light .hover\:text-neutral-50:hover {
     color: var(--color-neutral-950) !important;
@@ -423,15 +439,15 @@ input.error:focus {
     }
 }
 
-/* Error message styling */
+/* Error message styling - fixed height to prevent layout shift */
 .field-error {
     color: var(--color-red-400);
     font-size: var(--text-xs);
     margin-top: calc(var(--spacing) * 2);
+    min-height: 1.25rem;
     display: flex;
     align-items: flex-start;
     gap: calc(var(--spacing) * 1);
-    animation: slideDown 0.3s ease-out;
 }
 
 .field-error::before {
@@ -440,16 +456,18 @@ input.error:focus {
     font-size: 1em;
 }
 
-/* Slide down animation for error messages */
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Reserve space for error messages to prevent layout shift */
+.mb-6, .mb-8 {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.mb-6 .field-error,
+.mb-8 .field-error {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }
 
 /* Remove green border success state - we only use background color now */
