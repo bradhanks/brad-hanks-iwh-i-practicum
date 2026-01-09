@@ -16,6 +16,7 @@ const config = (env: unknown, argv: { mode?: string }): Configuration => {
       theme: './public/js/theme.js',
       sorting: './public/js/sorting.js',
       'tailwind-config': './public/js/tailwind-config.js',
+      form: './public/js/form.js',
     },
     output: {
       path: path.resolve(__dirname, 'public/js'),

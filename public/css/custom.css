@@ -1,0 +1,472 @@
+/* Custom styles for light/dark theme support and UI enhancements */
+
+/* ============================================
+   CSS Custom Properties for Transitions
+   ============================================ */
+:root {
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --focus-ring-width: 3px;
+    --focus-ring-offset: 2px;
+    --focus-ring-color: var(--color-neutral-50);
+}
+
+/* Light theme overrides */
+.light {
+    --color-bg: var(--color-neutral-50);
+    --color-text: var(--color-neutral-950);
+    --color-border: var(--color-neutral-200);
+    --color-subtle: var(--color-neutral-400);
+    --focus-ring-color: var(--color-neutral-950);
+}
+
+/* Fix light mode hover states */
+.light .hover\:text-neutral-50:hover {
+    color: var(--color-neutral-950) !important;
+}
+
+.light button:hover,
+.light a:hover {
+    color: var(--color-neutral-950);
+}
+
+.light .text-neutral-400 {
+    color: var(--color-neutral-600);
+}
+
+.light .hover\:text-neutral-50:hover,
+.light [class*="hover:text-neutral-50"]:hover {
+    color: var(--color-neutral-950) !important;
+}
+
+/* Improve hover states for light theme buttons */
+.light .bg-neutral-50:hover {
+    background-color: var(--color-neutral-200);
+}
+
+.light .border-neutral-800 {
+    border-color: var(--color-neutral-200);
+}
+
+.light .bg-neutral-900 {
+    background-color: var(--color-neutral-50);
+    border: 1px solid var(--color-neutral-200);
+}
+
+.light header.border-b {
+    border-bottom-color: var(--color-neutral-200) !important;
+}
+
+.light table thead tr {
+    background-color: var(--color-neutral-50);
+    border-color: var(--color-neutral-200);
+}
+
+.light table tbody tr {
+    border-color: var(--color-neutral-200);
+}
+
+.light table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.light .border-neutral-800 {
+    border-color: var(--color-neutral-200);
+}
+
+/* Spinner animation for loading states */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   Enhanced Focus States for Accessibility
+   ============================================ */
+
+/* Base focus ring styles - visible only on keyboard focus */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    transition: outline-offset var(--transition-fast);
+}
+
+/* Remove default focus ring */
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+}
+
+/* Animated focus ring with glow effect */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+    transition: box-shadow var(--transition-base), outline-offset var(--transition-fast);
+}
+
+.light input:focus-visible,
+.light textarea:focus-visible,
+.light select:focus-visible {
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================
+   Advanced Input States (Hover, Focus, Active)
+   ============================================ */
+
+/* Input hover state */
+input:hover:not(:focus):not(:disabled) {
+    border-color: var(--color-neutral-600);
+    transform: translateY(-1px);
+    transition: border-color var(--transition-fast),
+                transform var(--transition-fast),
+                box-shadow var(--transition-fast);
+}
+
+/* Input focus state */
+input:focus {
+    border-color: var(--color-neutral-500);
+    background-color: var(--color-neutral-900);
+    transform: translateY(0);
+    transition: border-color var(--transition-base),
+                background-color var(--transition-base),
+                transform var(--transition-fast);
+}
+
+.light input:focus {
+    background-color: white;
+    border-color: var(--color-neutral-400);
+}
+
+/* Input active state (while typing) */
+input:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   Button States (Hover, Focus, Active)
+   ============================================ */
+
+/* Primary button (submit) states */
+button[type="submit"],
+.button-primary {
+    position: relative;
+    overflow: hidden;
+    transition: background-color var(--transition-base),
+                transform var(--transition-fast),
+                box-shadow var(--transition-base);
+}
+
+button[type="submit"]:hover:not(:disabled) {
+    background-color: var(--color-neutral-200);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+button[type="submit"]:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform var(--transition-fast),
+                box-shadow var(--transition-fast);
+}
+
+button[type="submit"]:focus-visible {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+.light button[type="submit"]:focus-visible {
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Secondary button/link states */
+a[href]:not(.skip-link) {
+    position: relative;
+    transition: color var(--transition-base),
+                transform var(--transition-fast),
+                opacity var(--transition-fast);
+}
+
+a[href]:hover {
+    transform: translateX(2px);
+}
+
+a[href]:active {
+    transform: translateX(1px);
+}
+
+/* Theme toggle button with enhanced states */
+#theme-toggle {
+    position: relative;
+    transition: color var(--transition-base),
+                transform var(--transition-base);
+}
+
+#theme-toggle:hover {
+    color: var(--color-neutral-50);
+    transform: scale(1.05);
+}
+
+#theme-toggle:active {
+    transform: scale(0.98);
+}
+
+#theme-toggle:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    border-radius: 4px;
+}
+
+/* ============================================
+   Table Row Interactive States
+   ============================================ */
+
+table tbody tr {
+    transition: background-color var(--transition-fast),
+                transform var(--transition-fast);
+}
+
+table tbody tr:hover {
+    background-color: var(--color-neutral-900);
+    transform: scale(1.002);
+}
+
+.light table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Table header sort buttons */
+th[data-sort] {
+    transition: background-color var(--transition-fast),
+                color var(--transition-fast);
+}
+
+th[data-sort]:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.light th[data-sort]:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+th[data-sort]:active {
+    background-color: rgba(255, 255, 255, 0.05);
+    transition: background-color var(--transition-fast);
+}
+
+/* ============================================
+   Form Links (Cancel button, etc)
+   ============================================ */
+
+a.border {
+    position: relative;
+    transition: border-color var(--transition-base),
+                color var(--transition-base),
+                background-color var(--transition-base),
+                transform var(--transition-fast);
+}
+
+a.border:hover {
+    border-color: var(--color-neutral-600);
+    color: var(--color-neutral-50);
+    background-color: rgba(255, 255, 255, 0.02);
+    transform: translateY(-1px);
+}
+
+.light a.border:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    color: var(--color-neutral-950);
+}
+
+a.border:active {
+    transform: translateY(0);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+a.border:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+}
+
+/* Disabled button styles */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Loading button animation */
+button .inline-flex {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Skip link improvements */
+.skip-link {
+    position: fixed;
+    top: -100px;
+    left: 0;
+    z-index: 9999;
+    padding: 1rem;
+    background: var(--color-neutral-50);
+    color: var(--color-neutral-950);
+    text-decoration: none;
+    transition: top 0.2s;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* Form input improvements for light theme */
+.light input {
+    background-color: white;
+    border-color: var(--color-neutral-200);
+    color: var(--color-neutral-950);
+}
+
+.light input:focus {
+    border-color: var(--color-neutral-400);
+}
+
+.light input::placeholder {
+    color: var(--color-neutral-400);
+}
+
+.light .text-neutral-600 {
+    color: var(--color-neutral-600);
+}
+
+/* Improve link hover states in light mode */
+.light a.text-neutral-400:hover {
+    color: var(--color-neutral-950);
+}
+
+/* Better color contrast for light mode */
+.light .text-neutral-50 {
+    color: var(--color-neutral-950);
+}
+
+/* Footer in light mode */
+.light footer {
+    border-top-color: var(--color-neutral-200);
+}
+
+.light footer .text-neutral-600 {
+    color: var(--color-neutral-500);
+}
+
+/* ============================================
+   Form Validation Error States
+   ============================================ */
+
+/* Error input styling */
+input.error,
+textarea.error,
+select.error {
+    border-color: var(--color-red-500) !important;
+    background-color: rgba(239, 68, 68, 0.05);
+    animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+input.error:focus {
+    outline-color: var(--color-red-500);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-4px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(4px);
+    }
+}
+
+/* Error message styling */
+.field-error {
+    color: var(--color-red-400);
+    font-size: var(--text-xs);
+    margin-top: calc(var(--spacing) * 2);
+    display: flex;
+    align-items: flex-start;
+    gap: calc(var(--spacing) * 1);
+    animation: slideDown 0.3s ease-out;
+}
+
+.field-error::before {
+    content: "⚠";
+    flex-shrink: 0;
+    font-size: 1em;
+}
+
+/* Slide down animation for error messages */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Success state (for valid inputs after error) */
+input:valid:not(:placeholder-shown):not(.error) {
+    border-color: var(--color-green-400);
+}
+
+/* ============================================
+   Reduced Motion Preferences (Accessibility)
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ============================================
+   High Contrast Mode Support (Accessibility)
+   ============================================ */
+
+@media (prefers-contrast: high) {
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible {
+        outline-width: 4px;
+        outline-offset: 3px;
+    }
+
+    input.error {
+        border-width: 3px;
+    }
+}

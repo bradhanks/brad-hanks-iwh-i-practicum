@@ -61,7 +61,7 @@ app.get('/', async (_req: Request, res: Response): Promise<void> => {
 });
 // TODO: ROUTE 2 - Create a new app.get route for the form to create or update new custom object data. Send this data along in the next route.
 
-app.get('/update-cobj', (req, res) => {
+app.get('/update-cobj', (_req, res) => {
     res.render('update', {
         title: 'Add Zip Code | Ground Truth'
     });
@@ -83,14 +83,14 @@ app.post('/update-cobj', async (req, res) => {
     catch (error) {
         const axiosError = error as AxiosError;
         console.error('Error creating record:', axiosError.response?.data || axiosError.message);
-        res.render('updates', {
+        res.render('update', {
             title: 'Add Zip Code | Ground Truth',
             error: 'Failed to create record. Check your data and try again.',
             formData: req.body
         });
     }
-        });
-    
+});
+
 
 // * Code for Route 3 goes here
 
