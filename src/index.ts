@@ -84,10 +84,24 @@ app.get('/', async (_req: Request, res: Response): Promise<void> => {
 });
 // TODO: ROUTE 2 - Create a new app.get route for the form to create or update new custom object data. Send this data along in the next route.
 
-app.get('/update-cobj', (_req, res) => {
-    res.render('update', {
-        title: 'Add Zip Code | Ground Truth'
-    });
+app.get('/update-cobj', async (_req, res) => {
+    try {
+        // Fetch all contacts for the multi-select
+        const contactsUrl = `https://api.hubapi.com/crm/v3/objects/contacts?properties=firstname,lastname&limit=100`;
+        const contactsResponse = await axios.get(contactsUrl, { headers });
+        const contacts = contactsResponse.data.results || [];
+
+        res.render('update', {
+            title: 'Add Zip Code | Ground Truth',
+            contacts: contacts
+        });
+    } catch (error) {
+        // If contacts fetch fails, still render the form
+        res.render('update', {
+            title: 'Add Zip Code | Ground Truth',
+            contacts: []
+        });
+    }
 });
 
 app.post('/update-cobj', async (req, res) => {
@@ -100,16 +114,70 @@ app.post('/update-cobj', async (req, res) => {
         }
     };
     try {
-        await axios.post(url, data, { headers });
+        // Create the zip code
+        const createResponse = await axios.post(url, data, { headers });
+        const newZipCodeId = createResponse.data.id;
+
+        // Associate contacts if any were selected
+        const contactIds = req.body.contactIds;
+        if (contactIds && Array.isArray(contactIds) && contactIds.length > 0) {
+            try {
+                // Get the correct association type ID
+                const schemaUrl = `https://api.hubapi.com/crm/v4/associations/contacts/${CUSTOM_OBJECT_TYPE}/labels`;
+                let associationTypeId = 1;
+
+                try {
+                    const schemaResponse = await axios.get(schemaUrl, { headers });
+                    const results = schemaResponse.data.results || [];
+                    if (results.length > 0) {
+                        associationTypeId = results[0].typeId;
+                    }
+                } catch (schemaError) {
+                    console.log('Using default association type ID');
+                }
+
+                // Create associations using batch API
+                const associationUrl = `https://api.hubapi.com/crm/v4/associations/contacts/${CUSTOM_OBJECT_TYPE}/batch/create`;
+
+                await axios.post(associationUrl, {
+                    inputs: contactIds.map((contactId: string) => ({
+                        from: { id: contactId },
+                        to: { id: newZipCodeId },
+                        types: [{
+                            associationCategory: "USER_DEFINED",
+                            associationTypeId: associationTypeId
+                        }]
+                    }))
+                }, { headers });
+
+                console.log(`Associated ${contactIds.length} contacts with zip code ${newZipCodeId}`);
+            } catch (assocError) {
+                console.error('Error creating associations:', assocError);
+                // Don't fail the whole operation if associations fail
+            }
+        }
+
         res.redirect('/');
     }
     catch (error) {
         const axiosError = error as AxiosError;
         console.error('Error creating record:', axiosError.response?.data || axiosError.message);
+
+        // Fetch contacts again for the error render
+        let contacts = [];
+        try {
+            const contactsUrl = `https://api.hubapi.com/crm/v3/objects/contacts?properties=firstname,lastname&limit=100`;
+            const contactsResponse = await axios.get(contactsUrl, { headers });
+            contacts = contactsResponse.data.results || [];
+        } catch (e) {
+            // Ignore
+        }
+
         res.render('update', {
             title: 'Add Zip Code | Ground Truth',
             error: 'Failed to create record. Check your data and try again.',
-            formData: req.body
+            formData: req.body,
+            contacts: contacts
         });
     }
 });
