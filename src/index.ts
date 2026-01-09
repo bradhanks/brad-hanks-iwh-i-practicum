@@ -61,13 +61,36 @@ app.get('/', async (_req: Request, res: Response): Promise<void> => {
 });
 // TODO: ROUTE 2 - Create a new app.get route for the form to create or update new custom object data. Send this data along in the next route.
 
-// * Code for Route 2 goes here
-
 app.get('/update-cobj', (req, res) => {
     res.render('update', {
         title: 'Add Zip Code | Ground Truth'
     });
 });
+
+app.post('/update-cobj', async (req, res) => {
+    const url = `https://api.hubapi.com/crm/v3/objects/${CUSTOM_OBJECT_TYPE}`;
+    const data = {
+        properties: {
+            name: req.body.name,
+            homeownership_rate: parseFloat(req.body.homeownership_rate) || 0,
+            median_home_age: parseInt(req.body.median_home_age) || 0
+        }
+    };
+    try {
+        await axios.post(url, data, { headers });
+        res.redirect('/');
+    }
+    catch (error) {
+        const axiosError = error as AxiosError;
+        console.error('Error creating record:', axiosError.response?.data || axiosError.message);
+        res.render('updates', {
+            title: 'Add Zip Code | Ground Truth',
+            error: 'Failed to create record. Check your data and try again.',
+            formData: req.body
+        });
+    }
+        });
+    
 
 // * Code for Route 3 goes here
 
