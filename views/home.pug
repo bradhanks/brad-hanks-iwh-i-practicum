@@ -91,6 +91,11 @@ block content
                     | #{value} years
                   else
                     span.text-neutral-600(aria-hidden="true") —
+                td.px-6.py-4.text-right(aria-label=`Associated contact: ${record.contact ? record.contact.properties.firstname + ' ' + record.contact.properties.lastname : 'none'}`)
+                  if record.contact
+                    span.text-neutral-50= (record.contact.properties.firstname || '') + ' ' + (record.contact.properties.lastname || '')
+                  else
+                    span.text-neutral-600(aria-hidden="true") —
     else
       //- Empty state
       .border.border-dashed.border-neutral-800.py-16.text-center.rounded-sm(role="status" aria-live="polite")

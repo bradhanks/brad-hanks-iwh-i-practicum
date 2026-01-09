@@ -1,15 +1,134 @@
-//- ** This is a sample of a pug template and how it uses the data passed to it from index.js.
+//- Contacts page - shows contacts with their associated zip codes
+extends layout
 
-//- doctype html
-//- html 
-//-     head 
-//-         title= `${title}`
-//-         meta(name="viewport" content="width=device-width, initial-scale=1")
-//-         link(rel="stylesheet", href="/css/style.css")
-//-     body    
-//-         h1 Contacts
-//-         .cards 
-//-             each contact in data
-//-                 .card 
-//-                     h2.card__name #{contact.properties.firstname}  #{contact.properties.lastname}
-//-                     p.card__email #{contact.properties.email}
+block content
+  header.border-b.border-neutral-800.py-6(class="dark:border-neutral-200")
+    .max-w-5xl.mx-auto.px-6.flex.justify-between.items-center
+      div
+        h1.font-display.text-2xl.font-bold.tracking-tight
+          a.transition-opacity(class="hover:opacity-80" href="/") GROUND TRUTH
+        p.text-sm.mt-1.text-neutral-400(class="dark:text-neutral-500") Contact directory with zip code data
+
+      //- Theme toggle
+      button.transition-colors.text-sm.uppercase.tracking-wider.text-neutral-400.bg-transparent.border-none.cursor-pointer(class="hover:text-neutral-50 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" onclick="toggleTheme()" id="theme-toggle" aria-label="Toggle theme" type="button")
+        span#theme-icon(aria-hidden="true") ◐
+        |  Theme
+
+  main#main-content.max-w-5xl.mx-auto.px-6.py-12
+
+    .mb-8
+      a.text-sm.transition-colors.inline-flex.items-center.gap-2.text-neutral-400(class="hover:text-neutral-50 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" href="/")
+        span(aria-hidden="true") ←
+        span Return to zip codes
+
+    //- Page title
+    .mb-12
+      h2.font-display.text-3xl.font-bold.tracking-tight.mb-2 Contacts
+      p.text-neutral-400 Manage contact-to-zip-code associations
+
+    if error
+      .bg-red-500.bg-opacity-10.border.border-red-500.p-4.mb-8.rounded-sm(role="alert" aria-live="assertive")
+        p.text-red-400.text-sm= error
+
+    //- Stats bar
+    .flex.justify-between.items-center.mb-8
+      p.text-sm.uppercase.tracking-wider.text-neutral-400
+        span.font-medium.tabular-nums.text-neutral-50= contacts.length
+        |  contacts
+
+      p.text-sm.text-neutral-400
+        - const associated = contacts.filter(c => c.zipCode).length
+        span.tabular-nums.text-neutral-50= associated
+        |  associated with zip codes
+
+    //- Contacts list
+    if contacts.length > 0
+      .space-y-4
+        each contact in contacts
+          .contact-card.border.border-neutral-800.p-6.rounded-sm.transition-all(
+            class="hover:border-neutral-600"
+            data-contact-id=contact.id
+          )
+            .flex.justify-between.items-start.gap-6
+
+              //- Contact info
+              .flex-1
+                h3.font-display.text-xl.font-bold.mb-2
+                  = contact.properties.firstname || 'N/A'
+                  | #{' '}
+                  = contact.properties.lastname || ''
+
+                .space-y-1.text-sm
+                  if contact.properties.email
+                    p.text-neutral-400
+                      span.text-neutral-600 Email:
+                      a.text-neutral-50.transition-colors(class="hover:text-neutral-200" href=`mailto:${contact.properties.email}`)= contact.properties.email
+
+                  if contact.properties.phone
+                    p.text-neutral-400
+                      span.text-neutral-600 Phone:
+                      a.text-neutral-50.transition-colors(class="hover:text-neutral-200" href=`tel:${contact.properties.phone}`)= contact.properties.phone
+
+              //- Zip code association
+              .flex-shrink-0.w-80
+                if contact.zipCode
+                  //- Show associated zip code
+                  .bg-neutral-900.border.border-neutral-800.p-4.rounded-sm(class="light:bg-white")
+                    .flex.justify-between.items-start.mb-3
+                      div
+                        p.text-xs.uppercase.tracking-wider.text-neutral-600.mb-1 Associated Zip Code
+                        p.font-display.text-2xl.font-bold.tabular-nums= contact.zipCode.properties.name
+
+                      //- Remove association button
+                      form(method="POST" action=`/contacts/${contact.id}/disassociate`)
+                        input(type="hidden" name="zipCodeId" value=contact.zipCode.id)
+                        button.text-neutral-600.transition-colors.p-1(
+                          class="hover:text-red-400"
+                          type="submit"
+                          aria-label="Remove zip code association"
+                          title="Remove association"
+                        )
+                          svg.w-4.h-4(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor")
+                            path(d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z")
+
+                    //- Zip code stats
+                    .grid.grid-cols-2.gap-4.text-xs
+                      div
+                        p.text-neutral-600.mb-1 Homeownership
+                        - const rate = parseFloat(contact.zipCode.properties.homeownership_rate) || 0
+                        - const rateColor = rate >= 65 ? 'text-green-400' : rate >= 50 ? 'text-yellow-400' : 'text-red-400'
+                        p.font-medium.tabular-nums(class=rateColor)= rate.toFixed(1) + '%'
+
+                      div
+                        p.text-neutral-600.mb-1 Median Home Age
+                        - const age = parseInt(contact.zipCode.properties.median_home_age) || 0
+                        p.font-medium.tabular-nums.text-neutral-50= age + ' years'
+
+                else
+                  //- Show association form
+                  form.association-form(method="POST" action=`/contacts/${contact.id}/associate` data-enhanced)
+                    label.block.text-xs.uppercase.tracking-wider.mb-2.text-neutral-400(for=`zip-${contact.id}`) Associate Zip Code
+
+                    .flex.gap-2
+                      select.flex-1.border.border-neutral-800.px-3.py-2.text-sm.transition-colors.bg-neutral-900.text-neutral-50.rounded-sm(
+                        class="focus:outline-none focus:border-neutral-600"
+                        id=`zip-${contact.id}`
+                        name="zipCodeId"
+                        required
+                        aria-label="Select zip code to associate"
+                      )
+                        option(value="" disabled selected) Select zip code...
+                        each zipCode in zipCodes
+                          option(value=zipCode.id)= zipCode.properties.name
+
+                      button.px-4.py-2.text-sm.font-medium.transition-colors.bg-neutral-50.text-neutral-950.rounded-sm(
+                        class="hover:bg-neutral-200 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px"
+                        type="submit"
+                        aria-label="Associate selected zip code"
+                      ) Associate
+
+    else
+      //- Empty state
+      .border.border-dashed.border-neutral-800.py-16.text-center.rounded-sm(role="status" aria-live="polite")
+        p.mb-4.text-neutral-400 No contacts found in your HubSpot account.
+        p.text-sm.text-neutral-600 Create contacts in HubSpot to see them here.

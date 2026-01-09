@@ -37,8 +37,31 @@ app.get('/', async (_req: Request, res: Response): Promise<void> => {
         const response = await axios.get<HubSpotResponse>(url, { headers });
         const records = response.data.results || [];
 
+        // Fetch associated contacts for each zip code
+        const recordsWithContacts = await Promise.all(
+            records.map(async (record: any) => {
+                try {
+                    const associationsUrl = `https://api.hubapi.com/crm/v4/objects/${CUSTOM_OBJECT_TYPE}/${record.id}/associations/contacts`;
+                    const assocResponse = await axios.get(associationsUrl, { headers });
+
+                    const contactIds = assocResponse.data.results?.map((r: any) => r.toObjectId) || [];
+
+                    // Fetch contact details if associated
+                    if (contactIds.length > 0) {
+                        const contactUrl = `https://api.hubapi.com/crm/v3/objects/contacts/${contactIds[0]}?properties=firstname,lastname`;
+                        const contactResponse = await axios.get(contactUrl, { headers });
+                        record.contact = contactResponse.data;
+                    }
+                } catch (error) {
+                    // No association exists, that's ok
+                    record.contact = null;
+                }
+                return record;
+            })
+        );
+
         // Sort by zip code alphabetically
-        records.sort((a: { properties: { name?: string } }, b: { properties: { name?: string } }) => {
+        recordsWithContacts.sort((a: { properties: { name?: string } }, b: { properties: { name?: string } }) => {
             const nameA = a.properties.name || '';
             const nameB = b.properties.name || '';
             return nameA.localeCompare(nameB);
@@ -47,7 +70,7 @@ app.get('/', async (_req: Request, res: Response): Promise<void> => {
 
         res.render('home', {
             title: 'Ground Truth | Housing Data',
-            records: records
+            records: recordsWithContacts
         });
     } catch (error) {
         const axiosError = error as AxiosError;
