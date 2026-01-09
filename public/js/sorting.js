@@ -126,5 +126,3 @@
         applySort(sortState.column, sortState.direction);
     }
 })();
-export {};
-//# sourceMappingURL=sorting.js.map

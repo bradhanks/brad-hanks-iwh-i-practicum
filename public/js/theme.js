@@ -37,5 +37,3 @@ window.toggleTheme = function () {
         icon.textContent = '◑';
     }
 })();
-export {};
-//# sourceMappingURL=theme.js.map

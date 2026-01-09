@@ -13,5 +13,3 @@ if (typeof window !== 'undefined' && window.tailwind) {
         }
     };
 }
-export {};
-//# sourceMappingURL=tailwind-config.js.map
