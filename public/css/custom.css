@@ -113,12 +113,12 @@ textarea:focus {
     outline: none;
 }
 
-/* Animated focus ring with glow effect */
+/* Animated focus ring with glow effect - offset by -2px to be inside the element */
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
     outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
+    outline-offset: -2px;
     box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
     transition: box-shadow var(--transition-base), outline-offset var(--transition-fast);
 }
@@ -133,33 +133,43 @@ select:focus-visible {
    Advanced Input States (Hover, Focus, Active)
    ============================================ */
 
-/* Input hover state */
-input:hover:not(:focus):not(:disabled) {
-    border-color: var(--color-neutral-600);
-    transform: translateY(-1px);
-    transition: border-color var(--transition-fast),
-                transform var(--transition-fast),
-                box-shadow var(--transition-fast);
+/* Base input state - darker background, no visible border */
+input:not(:focus):not(.error) {
+    border-color: transparent;
+    background-color: var(--color-neutral-900);
+    transition: background-color var(--transition-base);
 }
 
-/* Input focus state */
+.light input:not(:focus):not(.error) {
+    background-color: #f3f4f6;
+    border-color: transparent;
+}
+
+/* Input hover state - keep same as default */
+input:hover:not(:focus):not(:disabled) {
+    border-color: transparent;
+}
+
+/* Input focus state - lighter background, no border change */
 input:focus {
-    border-color: var(--color-neutral-500);
-    background-color: var(--color-neutral-900);
+    border-color: transparent;
+    background-color: var(--color-neutral-800);
     transform: translateY(0);
-    transition: border-color var(--transition-base),
-                background-color var(--transition-base),
-                transform var(--transition-fast);
+    transition: background-color var(--transition-base);
 }
 
 .light input:focus {
     background-color: white;
-    border-color: var(--color-neutral-400);
+    border-color: transparent;
 }
 
-/* Input active state (while typing) */
-input:active {
-    transform: translateY(0);
+/* Valid filled input (after blur) - medium background between default and focus */
+input:valid:not(:placeholder-shown):not(:focus):not(.error) {
+    background-color: #1f2937; /* Between neutral-900 (20.5%) and neutral-800 (26.9%) */
+}
+
+.light input:valid:not(:placeholder-shown):not(:focus):not(.error) {
+    background-color: #f9fafb; /* Between #f3f4f6 and white */
 }
 
 /* ============================================
@@ -378,18 +388,26 @@ button .inline-flex {
    Form Validation Error States
    ============================================ */
 
-/* Error input styling */
+/* Error input styling - pink/red tinted background, no border */
 input.error,
 textarea.error,
 select.error {
-    border-color: var(--color-red-500) !important;
-    background-color: rgba(239, 68, 68, 0.05);
+    border-color: transparent !important;
+    background-color: rgba(239, 68, 68, 0.15);
     animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.light input.error,
+.light textarea.error,
+.light select.error {
+    background-color: rgba(239, 68, 68, 0.08);
 }
 
 input.error:focus {
     outline-color: var(--color-red-500);
+    outline-offset: -2px;
     box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+    background-color: rgba(239, 68, 68, 0.15);
 }
 
 /* Shake animation for errors */
@@ -434,10 +452,7 @@ input.error:focus {
     }
 }
 
-/* Success state (for valid inputs after error) */
-input:valid:not(:placeholder-shown):not(.error) {
-    border-color: var(--color-green-400);
-}
+/* Remove green border success state - we only use background color now */
 
 /* ============================================
    Reduced Motion Preferences (Accessibility)
@@ -469,4 +484,136 @@ input:valid:not(:placeholder-shown):not(.error) {
     input.error {
         border-width: 3px;
     }
+}
+
+/* ============================================
+   Contacts Page Specific Styles
+   ============================================ */
+
+/* Contact card hover effects */
+.contact-card {
+    transition: border-color var(--transition-base),
+                box-shadow var(--transition-base),
+                transform var(--transition-fast);
+}
+
+.contact-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.light .contact-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Association form select styling */
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    transition: border-color var(--transition-base),
+                background-color var(--transition-base);
+}
+
+select:hover:not(:disabled) {
+    border-color: var(--color-neutral-600);
+}
+
+select:focus {
+    border-color: var(--color-neutral-500);
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+}
+
+.light select {
+    background-color: white;
+    border-color: var(--color-neutral-200);
+    color: var(--color-neutral-950);
+}
+
+.light select:focus {
+    border-color: var(--color-neutral-400);
+}
+
+/* Grid layout utilities */
+.space-y-4 > * + * {
+    margin-top: calc(var(--spacing) * 4);
+}
+
+.grid {
+    display: grid;
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Gap utilities */
+.gap-3 {
+    gap: calc(var(--spacing) * 3);
+}
+
+/* W-80 utility (320px) */
+.w-80 {
+    width: 20rem;
+}
+
+/* H-4 utility */
+.h-4 {
+    height: 1rem;
+}
+
+.w-4 {
+    width: 1rem;
+}
+
+/* SVG icon styling */
+svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Remove association button */
+button[aria-label="Remove zip code association"] {
+    transition: color var(--transition-fast),
+                transform var(--transition-fast);
+}
+
+button[aria-label="Remove zip code association"]:hover {
+    transform: scale(1.1);
+}
+
+button[aria-label="Remove zip code association"]:active {
+    transform: scale(0.95);
+}
+
+/* Association button in contacts */
+.association-form button[type="submit"] {
+    white-space: nowrap;
+}
+
+/* Improve stats display */
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Light theme adjustments for contacts page */
+.light .contact-card {
+    border-color: var(--color-neutral-200);
+}
+
+.light .contact-card .bg-neutral-900 {
+    background-color: #f9fafb;
+    border-color: var(--color-neutral-200);
+}
+
+.light .text-neutral-600 {
+    color: var(--color-neutral-600);
+}
+
+.light .text-neutral-400 {
+    color: var(--color-neutral-600);
 }
