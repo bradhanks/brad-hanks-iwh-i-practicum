@@ -99,6 +99,33 @@ block content
           )
         p#value-help.text-xs.mt-2.text-neutral-600 Must be at least $1,000
 
+      //- Associate contacts (optional)
+      .mb-8
+        label.block.text-xs.uppercase.tracking-wider.mb-3.text-neutral-400 Associate Contacts (Optional)
+
+        if contacts && contacts.length > 0
+          .space-y-2.max-h-64.overflow-y-auto.border.border-transparent.p-4.bg-neutral-900.rounded-sm
+            each contact in contacts
+              .flex.items-start
+                input(
+                  type="checkbox"
+                  id=`contact-${contact.id}`
+                  name="contactIds"
+                  value=contact.id
+                  class="mt-0.5 w-4 h-4 cursor-pointer accent-neutral-50"
+                )
+                label.ml-3.text-sm.cursor-pointer.text-neutral-50.transition-colors(
+                  class="hover:text-neutral-200"
+                  for=`contact-${contact.id}`
+                )
+                  = (contact.properties.firstname || '') + ' ' + (contact.properties.lastname || '')
+                  if contact.properties.email
+                    span.text-neutral-600.ml-2.text-xs= '(' + contact.properties.email + ')'
+
+          p.text-xs.mt-3.text-neutral-600 Select contacts to associate with this zip code
+        else
+          p.text-sm.text-neutral-600.py-4 No contacts available. Create contacts in HubSpot to associate them.
+
       //- Form buttons
       .flex.gap-4
         button.px-6.py-3.font-medium.transition-colors.bg-neutral-50.text-neutral-950.rounded-sm(class="hover:bg-neutral-200 focus-visible:outline focus-visible:outline-2px focus-visible:outline-neutral-50 focus-visible:outline-offset-2px" type="submit" aria-label="Submit form to add zip code to database")
