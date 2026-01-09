@@ -2,3 +2,7 @@
 node_modules
 package-lock.json
 .env
+dist
+public/js/*.min.js
+public/js/*.min.js.map
+public/css/output.css

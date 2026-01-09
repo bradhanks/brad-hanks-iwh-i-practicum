@@ -5,7 +5,7 @@
     "moduleResolution": "NodeNext",
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,6 +16,13 @@
     "sourceMap": true,
     "types": ["node"]
   },
-  "include": ["src/**/*", "postcss.config.ts"],
-  "exclude": ["node_modules", "dist", "src/types"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/types",
+    "*.ts",
+    "webpack.config.ts",
+    "postcss.config.ts"
+  ]
 }
