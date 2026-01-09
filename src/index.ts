@@ -303,19 +303,18 @@ app.post('/contacts/:contactId/associate', async (req: Request, res: Response): 
             fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:288',message:'Existing associations found',data:{count:existingAssociations.length,associations:existingAssociations},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
             // #endregion
 
-            // Remove existing associations using batch delete
+            // Remove existing associations using DELETE endpoint
             if (existingAssociations.length > 0) {
-                const deleteUrl = `https://api.hubapi.com/crm/v4/associations/contacts/${CUSTOM_OBJECT_TYPE}/batch/archive`;
                 // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:293',message:'Removing existing associations',data:{deleteUrl,deletePayload:existingAssociations.map((assoc: any) => ({from: { id: contactId },to: { id: assoc.toObjectId },types: [{ associationCategory: "USER_DEFINED", associationTypeId: assoc.associationTypes[0]?.typeId || associationTypeId }]}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+                fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:293',message:'Removing existing associations',data:{count:existingAssociations.length,associations:existingAssociations.map((a: any) => a.toObjectId)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
                 // #endregion
-                await axios.post(deleteUrl, {
-                    inputs: existingAssociations.map((assoc: any) => ({
-                        from: { id: contactId },
-                        to: { id: assoc.toObjectId },
-                        types: [{ associationCategory: "USER_DEFINED", associationTypeId: assoc.associationTypes[0]?.typeId || associationTypeId }]
-                    }))
-                }, { headers });
+                // Delete each existing association individually
+                await Promise.all(
+                    existingAssociations.map((assoc: any) => {
+                        const deleteUrl = `https://api.hubapi.com/crm/v4/objects/contacts/${contactId}/associations/${CUSTOM_OBJECT_TYPE}/${assoc.toObjectId}`;
+                        return axios.delete(deleteUrl, { headers });
+                    })
+                );
                 // #region agent log
                 fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:301',message:'Delete associations success',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
                 // #endregion
@@ -328,13 +327,16 @@ app.post('/contacts/:contactId/associate', async (req: Request, res: Response): 
             console.log('No existing associations to remove');
         }
 
-        // Create new association using PUT endpoint with /default/ path
-        // This uses HubSpot's default association type without needing to specify it
-        const associationUrl = `https://api.hubapi.com/crm/v4/objects/contacts/${contactId}/associations/default/${CUSTOM_OBJECT_TYPE}/${zipCodeId}`;
-        const createPayload: any[] = []; // Empty array - HubSpot uses default association type
+        // Create new association using PUT endpoint with explicit association type ID
+        // Use the association type ID we fetched from the schema (or default to 1)
+        const associationUrl = `https://api.hubapi.com/crm/v4/objects/contacts/${contactId}/associations/${CUSTOM_OBJECT_TYPE}/${zipCodeId}`;
+        const createPayload = {
+            associationCategory: "USER_DEFINED",
+            associationTypeId: associationTypeId
+        };
 
         // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:325',message:'Before PUT association API call',data:{associationUrl,createPayload,headers:Object.keys(headers)},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:330',message:'Before PUT association API call',data:{associationUrl,createPayload,associationTypeId,headers:Object.keys(headers)},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
         // #endregion
 
         const createResponse = await axios.put(associationUrl, createPayload, { headers });
@@ -364,27 +366,30 @@ app.post('/contacts/:contactId/disassociate', async (req: Request, res: Response
     }
 
     try {
-        // Use batch archive endpoint for removing associations
-        const deleteUrl = `https://api.hubapi.com/crm/v4/associations/contacts/${CUSTOM_OBJECT_TYPE}/batch/archive`;
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:365',message:'Disassociate route entry',data:{contactId,zipCodeId,body:req.body},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'G'})}).catch(()=>{});
+        // #endregion
 
-        await axios.post(deleteUrl, {
-            inputs: [
-                {
-                    from: { id: contactId },
-                    to: { id: zipCodeId },
-                    types: [
-                        {
-                            associationCategory: "USER_DEFINED",
-                            associationTypeId: 1
-                        }
-                    ]
-                }
-            ]
-        }, { headers });
+        // Use DELETE endpoint for removing single association
+        // Format: DELETE /crm/v4/objects/{fromObjectType}/{fromObjectId}/associations/{toObjectType}/{toObjectId}
+        const deleteUrl = `https://api.hubapi.com/crm/v4/objects/contacts/${contactId}/associations/${CUSTOM_OBJECT_TYPE}/${zipCodeId}`;
+
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:372',message:'Before DELETE association call',data:{deleteUrl,method:'DELETE',contactId,zipCodeId,CUSTOM_OBJECT_TYPE},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
+
+        const deleteResponse = await axios.delete(deleteUrl, { headers });
+
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:378',message:'DELETE association success',data:{status:deleteResponse.status,statusText:deleteResponse.statusText},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
 
         res.redirect('/contacts');
     } catch (error) {
         const axiosError = error as AxiosError;
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/450c5a90-5aa6-4b45-a915-9810ffb39c17',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'src/index.ts:385',message:'DELETE association error',data:{error:axiosError.response?.data||axiosError.message,status:axiosError.response?.status,statusText:axiosError.response?.statusText,url:axiosError.config?.url,method:axiosError.config?.method},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'H'})}).catch(()=>{});
+        // #endregion
         console.error('Error removing association:', axiosError.response?.data || axiosError.message);
         res.redirect('/contacts?error=disassociation_failed');
     }
