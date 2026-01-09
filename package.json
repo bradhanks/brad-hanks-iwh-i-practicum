@@ -18,6 +18,13 @@
         "@types/pug": "^2.0.10",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node dist/index.js",
+        "dev": "concurrently \"pnpm:dev:*\"",
+        "dev:ts": "tsx watch src/index.ts",
         "build:ts": "tsc",
         "typecheck": "tsc --noEmit"
+    }
 }
