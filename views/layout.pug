@@ -1,0 +1,28 @@
+//- Base layout template
+//- This handles the common stuff like head, fonts, theme setup
+doctype html
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title= title
+    link(rel="preconnect" href="https://fonts.googleapis.com")
+    link(rel="preconnect" href="https://fonts.gstatic.com" crossorigin)
+    link(href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet")
+    link(rel="stylesheet" href="/css/output.css")
+    link(rel="stylesheet" href="/css/style.css")
+    link(rel="stylesheet" href="/css/theme.css")
+  
+  body.font-body.min-h-screen.antialiased.bg-neutral-950.text-neutral-50.relative(id="app")
+    script(src=isProduction ? "/js/theme.min.js" : "/js/theme.js")
+
+    //- Skip link for keyboard navigation
+    a.skip-link.bg-neutral-50.text-neutral-950.px-4.py-2.no-underline(class="focus:top-0" href="#main-content") Skip to main content
+
+    //- block content
+
+    //- Footer
+    footer.border-t.border-neutral-800.py-6.mt-auto
+      .max-w-5xl.mx-auto.px-6
+        p.text-xs.uppercase.tracking-wider.text-neutral-600 HubSpot Integration Practicum
+
